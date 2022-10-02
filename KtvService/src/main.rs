@@ -3,9 +3,7 @@ mod model;
 mod repo;
 mod utils;
 use actix_web::{HttpServer, App, web::Data, middleware::Logger};
-use api::song::{
-    get_all_songs
-};
+use api::song::*;
 use utils::consts::*;
 use crate::repo::ddb::DDBRepository;
 
@@ -25,6 +23,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .app_data(ddb_data)
             .service(get_all_songs)
+            .service(put_song)
+            .service(query_songs)
 
     })
         .bind(("127.0.0.1", 8080))?
