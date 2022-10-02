@@ -17,7 +17,7 @@ async fn main() -> std::io::Result<()> {
 
     let shared_config = aws_config::load_from_env().await;
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         let ddb = DDBRepository::init(KTV_SONGS_TABLE_NAME.to_string(), shared_config.clone());
         let ddb_data = Data::new(ddb);
         let logger = Logger::default();

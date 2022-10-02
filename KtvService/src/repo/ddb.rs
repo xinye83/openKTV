@@ -1,7 +1,4 @@
-use std::fmt::{Display, Formatter};
-use actix_web::{HttpResponse, ResponseError};
-use actix_web::body::BoxBody;
-use actix_web::error::UrlencodedError::ContentType;
+
 use aws_sdk_dynamodb::Client;
 use aws_config::SdkConfig;
 use log::{debug, error};
@@ -10,9 +7,7 @@ use aws_sdk_dynamodb::output::PutItemOutput;
 use aws_sdk_dynamodb::types::SdkError;
 use serde_dynamo::aws_sdk_dynamodb_0_19::from_items;
 use serde_dynamo::to_item;
-use crate::api::song::ApiError;
-use crate::api::song::ApiError::DbError;
-use crate::model::song::{Song, State};
+use crate::model::song::{Song};
 
 pub struct DDBRepository {
     client: Client,
@@ -33,20 +28,6 @@ pub enum DdbError {
 
 }
 
-pub trait DdbErrorExt {
-    fn to_api_error(&self) -> ApiError;
-}
-
-impl DdbErrorExt for DdbError{
-    fn to_api_error(&self) -> ApiError {
-        match *self {
-            DdbError::DynamoError(e) => DbError(DdbError::DynamoError(e)),
-            DdbError::ScanError(_) => {}
-            DdbError::PutError(_) => {}
-            DdbError::ParsingError(_) => {}
-        }
-    }
-}
 
 impl DDBRepository {
     pub fn init(table_name: String, config: SdkConfig) -> DDBRepository {
@@ -63,12 +44,8 @@ impl DDBRepository {
 
         let response = request.send().await?;
 
-        return if let Some(items) = response.items {
-            let songs = from_items(items).unwrap();
-            Ok(songs)
-        } else {
-            Ok(vec![])
-        }
+        let songs:Vec<Song> = from_items(response.items.unwrap())?;
+        Ok(songs)
     }
 
     pub async fn put_song(&self, song: Song) -> Result<PutItemOutput, DdbError> {
