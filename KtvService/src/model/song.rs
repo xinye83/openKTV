@@ -1,42 +1,42 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use strum_macros::{Display};
 
 
-#[derive(Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct Song {
-    pub uuid: String,
+    pub id: u64,
     pub name: String,
-    pub artist: String,
-    pub state: State,
+    #[sqlx(flatten)]
+    pub artist: Artist,
+    //pub state: State,
     pub url: String,
-    pub played_count: usize,
+    //pub played_count: usize,
 
 }
 
-#[derive(Serialize, Deserialize, Display)]
-pub enum State {
-    New,
-    Error,
-}
+// #[derive(Serialize, Deserialize, Display)]
+// pub enum State {
+//     New,
+//     Error,
+// }
 
 
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct Artist {
-    id: u64,
-    name: String,
-    region: String,
+    pub id: u64,
+    #[sqlx(rename = "artist_name")]
+    pub name: String,
+    pub region: String,
 }
 
 impl Song {
-    pub fn new_youtube(name: String, artist: String, url: String) -> Song {
-        Song {
-            uuid: Uuid::new_v4().to_string(),
-            name,
-            artist,
-            state: State::New,
-            url,
-            played_count: 0,
-        }
-    }
+    // pub fn new_youtube(name: String, artist: String, url: String) -> Song {
+    //     Song {
+    //         uuid: Uuid::new_v4().to_string(),
+    //         name,
+    //         artist,
+    //         state: State::New,
+    //         url,
+    //         played_count: 0,
+    //     }
+    // }
 }

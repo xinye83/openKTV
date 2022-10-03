@@ -35,7 +35,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_all_artists)
             .service(put_artist)
             .service(query_artists)
-            // .service(query_songs)
+            .service(put_song)
+            .service(query_songs)
 
     })
         .bind(("127.0.0.1", 8080))?
