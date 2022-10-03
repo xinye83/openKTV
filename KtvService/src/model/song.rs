@@ -21,6 +21,13 @@ pub enum State {
 }
 
 
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
+pub struct Artist {
+    id: u64,
+    name: String,
+    region: String,
+}
+
 impl Song {
     pub fn new_youtube(name: String, artist: String, url: String) -> Song {
         Song {
