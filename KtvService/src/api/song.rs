@@ -1,15 +1,17 @@
 use actix_web::{get, post, put, error::ResponseError, web::Path, web::Json, web::Data, HttpResponse, http::{header::ContentType, StatusCode}, web};
 use actix_web::web::Query;
-use crate::model::song::Song;
-use crate::repo::ddb::{DdbError, DDBRepository};
+use crate::model::song::{Artist, Song};
+use crate::repo::db::DBRepository;
 use crate::utils::*;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
+use sqlx::Error;
+
 
 #[derive(Debug, Display, Error)]
 pub enum ApiError {
     #[display(fmt = "Internal DB error")]
-    DbError(DdbError),
+    DbError(sqlx::Error),
 
     #[display(fmt = "Bad request")]
     BadClientData,
@@ -34,44 +36,103 @@ impl ResponseError for ApiError {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SongApi {
-    pub uuid: Option<String>,
+pub struct SongRequest {
     pub name: Option<String>,
-    pub artist: Option<String>,
     pub url: Option<String>,
+    pub artist: Option<String>,
+    pub region: Option<String>,
 }
 
-
-#[get("/song/{id}")]
-pub async fn get_song_by_id(song: Path<Song>) -> Json<String> {
-
-    return Json("hello world".to_string());
+#[derive(Serialize, Deserialize)]
+pub struct ArtistRequest {
+    pub name: Option<String>,
+    pub region: Option<String>,
 }
 
-#[get("/all_songs")]
-pub async fn get_all_songs(ddb: Data<DDBRepository>) -> Result<Json<Vec<Song>>, ApiError> {
-    let rtn = ddb.get_songs().await;
+#[derive(Serialize, Deserialize)]
+pub struct QueryParams {
+    pub page_num: Option<usize>, // 0-based
+    pub page_size: Option<usize>,
+    //pub include_total_count: Option<bool>,
+}
+
+#[derive(Serialize)]
+pub struct ApiResponse<T> {
+    pub page_num: Option<usize>,
+    pub page_size: Option<usize>,
+    pub items: Box<Vec<T>>,
+}
+
+// artist
+#[put("/artist")]
+pub async fn put_artist(ddb: Data<DBRepository>, payload: Json<ArtistRequest>) -> Result<Json<u64>, ApiError> {
+    let rtn = ddb.insert_artist(&payload.name.guard()?, &payload.region).await;
     return match rtn {
-        Ok(it) => Ok(Json(it)),
+        Ok(id) => Ok(Json(id)),
         Err(err) => Err(ApiError::DbError(err))
     }
 }
 
+#[get("/all_artists")]
+pub async fn get_all_artists(ddb: Data<DBRepository>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Artist>>, ApiError> {
+    let rtn = ddb.get_all_artists(&params.0).await;
+    return match_results(rtn, params.0)
+}
+
+#[post("/artists")]
+pub async fn query_artists(ddb: Data<DBRepository>, query: Json<ArtistRequest>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Artist>>, ApiError> {
+    let rtn = ddb.query_artists(query.0, &params.0).await;
+    return match_results(rtn, params.0)
+
+}
+
+// song
 #[put("/song")]
-pub async fn put_song(ddb: Data<DDBRepository>, payload: Json<SongApi>) -> Result<Json<String>, ApiError> {
-    let song = Song::new_youtube(payload.name.guard()?, payload.artist.guard()?, payload.url.guard()?);
-    let rtn = ddb.put_song(&song).await;
+pub async fn put_song(ddb: Data<DBRepository>, payload: Json<SongRequest>) -> Result<Json<u64>, ApiError> {
+    //let song = Song::new_youtube(payload.name.guard()?, payload.artist.guard()?, payload.url.guard()?);
+    let rtn = ddb.insert_song(payload.0).await;
     return match rtn {
-        Ok(_) => Ok(Json(song.uuid)),
+        Ok(id) => Ok(Json(id)),
         Err(err) => Err(ApiError::DbError(err))
     }
 }
 
-#[get("/songs")]
-pub async fn query_songs(ddb: Data<DDBRepository>, query: Json<SongApi>) -> Result<Json<Vec<Song>>, ApiError> {
-    let rtn = ddb.query_songs(query).await;
+#[post("/songs")]
+pub async fn query_songs(ddb: Data<DBRepository>, query: Json<SongRequest>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Song>>, ApiError> {
+    let rtn = ddb.query_songs(query.0, &params.0).await;
+    return match_results(rtn, params.0)
+
+}
+
+fn match_results<T>(rtn: Result<Vec<T>, Error>, params: QueryParams) -> Result<Json<ApiResponse<T>>, ApiError> {
     return match rtn {
-        Ok(it) => Ok(Json(it)),
+        Ok(it) => Ok(Json(ApiResponse {
+            page_num: params.page_num,
+            page_size: params.page_size,
+            items: Box::new(it),
+        })),
         Err(err) => Err(ApiError::DbError(err))
     }
 }
+
+
+//
+// #[get("/all_songs")]
+// pub async fn get_all_songs(ddb: Data<DBRepository>) -> Result<Json<Vec<Song>>, ApiError> {
+//     let rtn = ddb.get_songs().await;
+//     return match rtn {
+//         Ok(it) => Ok(Json(it)),
+//         Err(err) => Err(ApiError::DbError(err))
+//     }
+// }
+//
+
+// #[get("/songs")]
+// pub async fn query_songs(ddb: Data<DBRepository>, query: Json<SongApi>) -> Result<Json<Vec<Song>>, ApiError> {
+//     let rtn = ddb.query_songs(query).await;
+//     return match rtn {
+//         Ok(it) => Ok(Json(it)),
+//         Err(err) => Err(ApiError::DbError(err))
+//     }
+// }
+
