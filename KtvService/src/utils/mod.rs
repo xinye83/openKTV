@@ -1,4 +1,4 @@
-use crate::ApiError;
+use crate::api::ApiError;
 
 pub mod consts;
 
@@ -14,4 +14,8 @@ impl OptionUtil for Option<String> {
             Some(it) => Ok(it.clone())
         }
     }
+}
+
+fn take<T>(vec: Vec<T>, index: usize) -> Option<T> {
+    vec.into_iter().nth(index)
 }

@@ -3,19 +3,14 @@ use serde::{
     Deserialize,
     Serialize
 };
-use crate::model::artist::Artist;
 
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Clone)]
-pub struct Song {
+pub struct Artist {
     pub id: u64,
+    #[sqlx(rename = "artist_name")]
     pub name: String,
-    #[sqlx(flatten)]
-    pub artist: Artist,
-    //pub state: State,
-    pub url: String,
-    //pub played_count: usize,
+    pub region: String,
     //#[serde(with = "ts_seconds")]
     pub created_at: DateTime<Utc>,
-
 }
