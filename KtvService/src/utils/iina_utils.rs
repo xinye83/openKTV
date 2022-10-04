@@ -30,6 +30,7 @@ pub async fn play_url(url: &str) -> Result<(), PlayerProcessError> {
     println!("[IINA] Playing url={}", url);
     Command::new(IINA_PATH)
         .arg(url)
+        .arg("--mpv-fullscreen")
         .spawn()
         .expect("IINA command failed to start");
     Ok(())
