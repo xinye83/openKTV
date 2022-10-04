@@ -80,7 +80,7 @@ VALUES (?, ?)
             .collect::<Vec<_>>()
             .join(" AND ");
 
-        let query_str = format!("SELECT a.id, a.name AS artist_name, a.region FROM artist a WHERE {} {}", where_cause_str, create_pagination_query_str(query.page_num, query.page_size));
+        let query_str = format!("SELECT a.id, a.name AS artist_name, a.region, a.created_at FROM artist a WHERE {} {}", where_cause_str, create_pagination_query_str(query.page_num, query.page_size));
         let result = sqlx::query_as::<_, Artist>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;
@@ -117,7 +117,7 @@ VALUES (?, ?, ?)
 
     pub async fn query_songs(&self, body: SongRequest, query: &QueryParams) -> Result<Vec<Song>, sqlx::Error> {
         let query_str = format!("\
-SELECT s.id, s.name, s.url, a.name AS artist_name, a.region
+SELECT s.id, s.name, s.url, a.name AS artist_name, a.region, a.created_at
 FROM song s
 LEFT JOIN artist a ON s.artist_id = a.id
 WHERE s.name LIKE '%{}%' {}", body.name.unwrap(), create_pagination_query_str(query.page_num, query.page_size));

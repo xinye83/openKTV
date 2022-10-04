@@ -1,11 +1,11 @@
-use actix_web::{get, post, put, error::ResponseError, web::Path, web::Json, web::Data, HttpResponse, http::{header::ContentType, StatusCode}, web};
-use actix_web::web::Query;
+use actix_web::{get, post, put, error::ResponseError, web::Path, web::Data, HttpResponse, http::{header::ContentType, StatusCode}, web};
+use actix_web::web::{Json, Query};
 use crate::model::song::{Artist, Song};
 use crate::repo::db::DBRepository;
 use crate::utils::*;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
-use sqlx::Error;
+use sqlx::{Error};
 
 
 #[derive(Debug, Display, Error)]
@@ -80,7 +80,7 @@ pub async fn get_all_artists(ddb: Data<DBRepository>, params: Query<QueryParams>
 }
 
 #[post("/artists")]
-pub async fn query_artists(ddb: Data<DBRepository>, query: Json<ArtistRequest>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Artist>>, ApiError> {
+pub async fn query_artists(ddb: Data<DBRepository>, query: web::Json<ArtistRequest>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Artist>>, ApiError> {
     let rtn = ddb.query_artists(query.0, &params.0).await;
     return match_results(rtn, params.0)
 
