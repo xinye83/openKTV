@@ -29,15 +29,22 @@ pub enum ApiError {
 impl ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
-            ApiError::DbError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::DbError(_) => StatusCode::BAD_REQUEST,
             ApiError::BadClientData => StatusCode::BAD_REQUEST,
         }
     }
 
     fn error_response(&self) -> HttpResponse {
+        let body = match self {
+            ApiError::DbError(err) => {
+                format!("{:?}", err)
+            },
+            ApiError::BadClientData => self.to_string()
+        };
+
         HttpResponse::build(self.status_code())
-            .insert_header(ContentType::html())
-            .body(self.to_string())
+            .insert_header(ContentType::json())
+            .body(body)
     }
 }
 
