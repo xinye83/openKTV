@@ -3,11 +3,16 @@ mod song;
 mod queue;
 
 use sqlx::{MySql, Pool};
+use crate::api::QueryParams;
 
 
 #[derive(Clone)]
 pub struct DBRepository {
     pool: Pool<MySql>,
+}
+
+pub fn create_pagination_query(params: &QueryParams) -> String {
+    create_pagination_query_str(params.page_num, params.page_size)
 }
 
 pub fn create_pagination_query_str(page_num: Option<usize>, page_size: Option<usize>) -> String {

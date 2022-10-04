@@ -6,7 +6,7 @@ use actix_web::{HttpServer, App, web::Data, middleware::Logger};
 use sqlx::mysql::MySqlPoolOptions;
 use api::artist::{put_artist, query_artists};
 use repo::DBRepository;
-use crate::api::queue::{delete_song_from_q, get_q, post_song_to_q, put_deprioritize_song, put_prioritize_song};
+use crate::api::queue::{delete_song_from_q, get_q, post_song_to_q, put_deprioritize_song, put_next_song, put_prioritize_song};
 use crate::api::song::{get_song_by_id, put_song, query_songs};
 
 
@@ -42,6 +42,7 @@ async fn main() -> std::io::Result<()> {
             .service(post_song_to_q)
             .service(put_prioritize_song)
             .service(put_deprioritize_song)
+            .service(put_next_song)
             .service(delete_song_from_q)
 
     })

@@ -1,7 +1,7 @@
 use crate::api::artist::ArtistRequest;
 use crate::api::QueryParams;
 use crate::model::artist::Artist;
-use crate::repo::{create_pagination_query_str, DBRepository};
+use crate::repo::{create_pagination_query, DBRepository};
 
 impl DBRepository {
     pub async fn insert_artist(&self, name: &String, region: &Option<String>) -> Result<u64, sqlx::Error> {
@@ -29,7 +29,7 @@ VALUES (?, ?)
             .collect::<Vec<_>>()
             .join(" AND ");
 
-        let query_str = format!("SELECT a.id, a.name AS artist_name, a.region, a.created_at FROM artist a WHERE {} {}", where_cause_str, create_pagination_query_str(query.page_num, query.page_size));
+        let query_str = format!("SELECT a.id, a.name AS artist_name, a.region, a.created_at FROM artist a WHERE {} {}", where_cause_str, create_pagination_query(query));
         let result = sqlx::query_as::<_, Artist>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;

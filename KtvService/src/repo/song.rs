@@ -2,7 +2,7 @@ use crate::api::artist::ArtistRequest;
 use crate::api::QueryParams;
 use crate::api::song::SongRequest;
 use crate::model::song::Song;
-use crate::repo::{create_pagination_query_str, DBRepository};
+use crate::repo::{create_pagination_query, DBRepository};
 
 static SONG_SELECT_FIELDS: &str = "a.name AS artist_name, a.*, s.*";
 
@@ -39,7 +39,7 @@ VALUES (?, ?, ?)
 SELECT {}
 FROM song s
 LEFT JOIN artist a ON s.artist_id = a.id
-WHERE s.name LIKE '%{}%' {}", SONG_SELECT_FIELDS, body.name.unwrap(), create_pagination_query_str(query.page_num, query.page_size));
+WHERE s.name LIKE '%{}%' {}", SONG_SELECT_FIELDS, body.name.unwrap(), create_pagination_query(query));
         let result = sqlx::query_as::<_, Song>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;
