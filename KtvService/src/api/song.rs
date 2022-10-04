@@ -73,12 +73,6 @@ pub async fn put_artist(ddb: Data<DBRepository>, payload: Json<ArtistRequest>) -
     }
 }
 
-#[get("/all_artists")]
-pub async fn get_all_artists(ddb: Data<DBRepository>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Artist>>, ApiError> {
-    let rtn = ddb.get_all_artists(&params.0).await;
-    return match_results(rtn, params.0)
-}
-
 #[post("/artists")]
 pub async fn query_artists(ddb: Data<DBRepository>, query: web::Json<ArtistRequest>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Artist>>, ApiError> {
     let rtn = ddb.query_artists(query.0, &params.0).await;
@@ -114,25 +108,3 @@ fn match_results<T>(rtn: Result<Vec<T>, Error>, params: QueryParams) -> Result<J
         Err(err) => Err(ApiError::DbError(err))
     }
 }
-
-
-//
-// #[get("/all_songs")]
-// pub async fn get_all_songs(ddb: Data<DBRepository>) -> Result<Json<Vec<Song>>, ApiError> {
-//     let rtn = ddb.get_songs().await;
-//     return match rtn {
-//         Ok(it) => Ok(Json(it)),
-//         Err(err) => Err(ApiError::DbError(err))
-//     }
-// }
-//
-
-// #[get("/songs")]
-// pub async fn query_songs(ddb: Data<DBRepository>, query: Json<SongApi>) -> Result<Json<Vec<Song>>, ApiError> {
-//     let rtn = ddb.query_songs(query).await;
-//     return match rtn {
-//         Ok(it) => Ok(Json(it)),
-//         Err(err) => Err(ApiError::DbError(err))
-//     }
-// }
-
