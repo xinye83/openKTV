@@ -58,15 +58,6 @@ VALUES (?, ?)
         Ok(result.last_insert_id())
     }
 
-    pub async fn get_all_artists(&self, query: &QueryParams) -> Result<Vec<Artist>, sqlx::Error> {
-        let query_str = format!("SELECT * FROM artist {}", create_pagination_query_str(query.page_num, query.page_size));
-        let result = sqlx::query_as::<_, Artist>(query_str.as_str())
-            .fetch_all(&self.pool)
-            .await?;
-
-        Ok(result)
-    }
-
     pub async fn query_artists(&self, request: ArtistRequest, query: &QueryParams) -> Result<Vec<Artist>, sqlx::Error> {
         let mut where_causes: Vec<(&str, String)> = Vec::new();
         if let Some(name) = request.name {
