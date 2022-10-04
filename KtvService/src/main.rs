@@ -4,10 +4,10 @@ mod repo;
 mod utils;
 use actix_web::{HttpServer, App, web::Data, middleware::Logger};
 use sqlx::mysql::MySqlPoolOptions;
-use api::song::*;
-use repo::db::*;
-use utils::consts::*;
-use crate::repo::db::DBRepository;
+use api::artist::{put_artist, query_artists};
+use repo::DBRepository;
+use crate::api::song::{put_song, query_songs};
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

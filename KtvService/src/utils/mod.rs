@@ -1,4 +1,4 @@
-use crate::ApiError;
+use crate::api::ApiError;
 
 pub mod consts;
 
