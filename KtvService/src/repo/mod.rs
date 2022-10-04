@@ -1,5 +1,6 @@
 mod artist;
 mod song;
+mod queue;
 
 use sqlx::{MySql, Pool};
 
@@ -19,6 +20,7 @@ pub fn create_pagination_query_str(page_num: Option<usize>, page_size: Option<us
 
 impl DBRepository {
     pub async fn init(pool: Pool<MySql>) -> Result<DBRepository, sqlx::Error> {
+
         sqlx::query("
 CREATE TABLE IF NOT EXISTS artist
 (
@@ -41,6 +43,18 @@ CREATE TABLE IF NOT EXISTS song
     FOREIGN KEY (artist_id)
       REFERENCES artist(id)
       ON DELETE CASCADE
+);").execute(&pool).await?;
+
+        sqlx::query("
+CREATE TABLE IF NOT EXISTS queue
+(
+    id          BIGINT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    song_id     BIGINT UNSIGNED NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    prioritized_at  TIMESTAMP NULL DEFAULT NULL,
+    CONSTRAINT uniq_song UNIQUE (song_id),
+    FOREIGN KEY (song_id)
+      REFERENCES song(id)
 );").execute(&pool).await?;
 
         Ok(DBRepository {

@@ -6,7 +6,7 @@ use serde::{
 use crate::model::artist::Artist;
 
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Clone)]
 pub struct Song {
     pub id: u64,
     pub name: String,

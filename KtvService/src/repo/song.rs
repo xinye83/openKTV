@@ -4,6 +4,8 @@ use crate::api::song::SongRequest;
 use crate::model::song::Song;
 use crate::repo::{create_pagination_query_str, DBRepository};
 
+static SONG_SELECT_FIELDS: &str = "a.name AS artist_name, a.*, s.*";
+
 impl DBRepository {
     pub async fn insert_song(&self, request: SongRequest) -> Result<u64, sqlx::Error> {
         // find artist first
@@ -20,7 +22,7 @@ impl DBRepository {
         };
 
 
-        let result = sqlx::query("
+        let result = sqlx::query("\
 INSERT INTO song (name, url, artist_id)
 VALUES (?, ?, ?)
 ")
@@ -34,14 +36,31 @@ VALUES (?, ?, ?)
 
     pub async fn query_songs(&self, body: SongRequest, query: &QueryParams) -> Result<Vec<Song>, sqlx::Error> {
         let query_str = format!("\
-SELECT s.id, s.name, s.url, a.name AS artist_name, a.region, a.created_at
+SELECT {}
 FROM song s
 LEFT JOIN artist a ON s.artist_id = a.id
-WHERE s.name LIKE '%{}%' {}", body.name.unwrap(), create_pagination_query_str(query.page_num, query.page_size));
+WHERE s.name LIKE '%{}%' {}", SONG_SELECT_FIELDS, body.name.unwrap(), create_pagination_query_str(query.page_num, query.page_size));
         let result = sqlx::query_as::<_, Song>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;
 
         Ok(result)
     }
+
+    pub async fn get_song_by_id(&self, id: String) -> Result<Song, sqlx::Error> {
+        let query_str = format!("\
+SELECT {}
+FROM song s
+LEFT JOIN artist a ON s.artist_id = a.id
+WHERE s.id = {}
+", SONG_SELECT_FIELDS, id);
+        let result = sqlx::query_as::<_, Song>(query_str.as_str())
+            .fetch_all(&self.pool)
+            .await?;
+        if result.is_empty() {
+            return Err(sqlx::Error::RowNotFound)
+        }
+        Ok(result.first().unwrap().clone())
+    }
+
 }

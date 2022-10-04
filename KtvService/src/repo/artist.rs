@@ -5,7 +5,7 @@ use crate::repo::{create_pagination_query_str, DBRepository};
 
 impl DBRepository {
     pub async fn insert_artist(&self, name: &String, region: &Option<String>) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query("
+        let result = sqlx::query("\
 INSERT INTO artist (name, region)
 VALUES (?, ?)
 ")

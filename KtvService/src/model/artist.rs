@@ -5,7 +5,7 @@ use serde::{
 };
 
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Clone)]
 pub struct Artist {
     pub id: u64,
     #[sqlx(rename = "artist_name")]

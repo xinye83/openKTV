@@ -1,5 +1,6 @@
 pub mod song;
 pub mod artist;
+pub mod queue;
 
 use actix_web::{
     HttpResponse,
@@ -65,3 +66,7 @@ pub fn match_results<T>(rtn: Result<Vec<T>, Error>, params: QueryParams) -> Resu
         Err(err) => Err(ApiError::DbError(err))
     }
 }
+
+// pub trait Result {
+//     fn api_unwrap(&self) -> Result<T, ApiError>
+// }

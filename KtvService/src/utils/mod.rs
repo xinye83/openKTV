@@ -15,3 +15,7 @@ impl OptionUtil for Option<String> {
         }
     }
 }
+
+fn take<T>(vec: Vec<T>, index: usize) -> Option<T> {
+    vec.into_iter().nth(index)
+}
