@@ -1,0 +1,31 @@
+version: '3'
+services:
+
+  mysql:
+    platform: linux/amd64
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ktv
+      MYSQL_ROOT_PASSWORD: sys_admin_123
+    volumes:
+      - ./datadir:/var/lib/mysql
+
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redisdata:/data
+  #   networks:
+  #     - sdnet
+
+
+# volumes:
+  # mysqldata:
+  #   driver: "local"
+  # redisdata:
+  #   driver: "local"
+#  xxljobdata:
+#    driver: "local"
