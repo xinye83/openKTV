@@ -3,6 +3,7 @@ use crate::api::QueryParams;
 use crate::api::song::SongRequest;
 use crate::model::song::Song;
 use crate::repo::{create_pagination_query, DBRepository};
+use crate::utils::iina_utils::play_url;
 
 static SONG_SELECT_FIELDS: &str = "a.name AS artist_name, a.*, s.*";
 
@@ -20,7 +21,6 @@ impl DBRepository {
         } else {
             artists.get(0).unwrap().id
         };
-
 
         let result = sqlx::query("\
 INSERT INTO song (name, url, artist_id)

@@ -1,3 +1,4 @@
+use std::ops::Index;
 use log::info;
 use crate::api::QueryParams;
 use crate::model::queue::Queue;
@@ -8,7 +9,7 @@ impl DBRepository {
     pub async fn get_queue(&self, params: QueryParams) -> Result<Vec<Queue>, sqlx::Error> {
         //In MySQL NULL values are considered lower in order than any non-NULL value, except if a - (minus) character is added before the column name while sorting.
         let query_str = format!("\
-SELECT q.*, a.name AS artist_name, s.id AS song_id, s.name AS song_name
+SELECT q.*, a.name AS artist_name, s.id AS song_id, s.name AS song_name, s.url AS song_url
 FROM queue q
 LEFT JOIN song s ON s.id = q.song_id
 LEFT JOIN artist a ON s.artist_id = a.id
@@ -19,7 +20,15 @@ ORDER BY -q.prioritized_at DESC, q.created_at ASC {}", create_pagination_query(&
         Ok(result)
     }
 
-    pub async fn next_song(&self, params: QueryParams) -> Result<Vec<Queue>, sqlx::Error> {
+    pub async fn get_next_song(&self) -> Result<Option<Queue>, sqlx::Error> {
+        let mut current_queue = self.get_queue(QueryParams { page_num: Some(0), page_size: Some(1) }).await?;
+        if current_queue.is_empty() {
+            return Err(sqlx::Error::RowNotFound);
+        }
+        Ok(current_queue.pop())
+    }
+
+    pub async fn pop_song_from_queue(&self, params: QueryParams) -> Result<Vec<Queue>, sqlx::Error> {
         let current_queue = self.get_queue(QueryParams { page_num: Some(0), page_size: Some(1) }).await?;
         if current_queue.is_empty() {
             return Err(sqlx::Error::RowNotFound);
