@@ -32,7 +32,6 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(logger)
             .app_data(ddb_data)
-            .service(get_all_artists)
             .service(put_artist)
             .service(query_artists)
             .service(put_song)

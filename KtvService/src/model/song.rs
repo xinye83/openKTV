@@ -1,4 +1,8 @@
-use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+use serde::{
+    Deserialize,
+    Serialize
+};
 
 
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
@@ -10,14 +14,10 @@ pub struct Song {
     //pub state: State,
     pub url: String,
     //pub played_count: usize,
+    //#[serde(with = "ts_seconds")]
+    pub created_at: DateTime<Utc>,
 
 }
-
-// #[derive(Serialize, Deserialize, Display)]
-// pub enum State {
-//     New,
-//     Error,
-// }
 
 
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
@@ -26,17 +26,6 @@ pub struct Artist {
     #[sqlx(rename = "artist_name")]
     pub name: String,
     pub region: String,
-}
-
-impl Song {
-    // pub fn new_youtube(name: String, artist: String, url: String) -> Song {
-    //     Song {
-    //         uuid: Uuid::new_v4().to_string(),
-    //         name,
-    //         artist,
-    //         state: State::New,
-    //         url,
-    //         played_count: 0,
-    //     }
-    // }
+    //#[serde(with = "ts_seconds")]
+    pub created_at: DateTime<Utc>,
 }

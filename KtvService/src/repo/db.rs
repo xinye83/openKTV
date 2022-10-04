@@ -58,15 +58,6 @@ VALUES (?, ?)
         Ok(result.last_insert_id())
     }
 
-    pub async fn get_all_artists(&self, query: &QueryParams) -> Result<Vec<Artist>, sqlx::Error> {
-        let query_str = format!("SELECT * FROM artist {}", create_pagination_query_str(query.page_num, query.page_size));
-        let result = sqlx::query_as::<_, Artist>(query_str.as_str())
-            .fetch_all(&self.pool)
-            .await?;
-
-        Ok(result)
-    }
-
     pub async fn query_artists(&self, request: ArtistRequest, query: &QueryParams) -> Result<Vec<Artist>, sqlx::Error> {
         let mut where_causes: Vec<(&str, String)> = Vec::new();
         if let Some(name) = request.name {
@@ -80,7 +71,7 @@ VALUES (?, ?)
             .collect::<Vec<_>>()
             .join(" AND ");
 
-        let query_str = format!("SELECT a.id, a.name AS artist_name, a.region FROM artist a WHERE {} {}", where_cause_str, create_pagination_query_str(query.page_num, query.page_size));
+        let query_str = format!("SELECT a.id, a.name AS artist_name, a.region, a.created_at FROM artist a WHERE {} {}", where_cause_str, create_pagination_query_str(query.page_num, query.page_size));
         let result = sqlx::query_as::<_, Artist>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;
@@ -91,13 +82,13 @@ VALUES (?, ?)
     pub async fn insert_song(&self, request: SongRequest) -> Result<u64, sqlx::Error> {
         // find artist first
         let artist_request = ArtistRequest {
-            name: request.name.clone(),
+            name: request.artist.clone(),
             region: request.region.clone(),
         };
         let artists = self.query_artists(artist_request, &QueryParams { page_num: None, page_size: None }).await?;
 
         let artist_id = if artists.is_empty() {
-            self.insert_artist(request.name.as_ref().unwrap(), &request.region).await?
+            self.insert_artist(request.artist.as_ref().unwrap(), &request.region).await?
         } else {
             artists.get(0).unwrap().id
         };
@@ -117,7 +108,7 @@ VALUES (?, ?, ?)
 
     pub async fn query_songs(&self, body: SongRequest, query: &QueryParams) -> Result<Vec<Song>, sqlx::Error> {
         let query_str = format!("\
-SELECT s.id, s.name, s.url, a.name AS artist_name, a.region
+SELECT s.id, s.name, s.url, a.name AS artist_name, a.region, a.created_at
 FROM song s
 LEFT JOIN artist a ON s.artist_id = a.id
 WHERE s.name LIKE '%{}%' {}", body.name.unwrap(), create_pagination_query_str(query.page_num, query.page_size));
