@@ -21,6 +21,9 @@ pub enum ApiError {
 
     #[display(fmt = "Bad request")]
     BadClientData,
+
+    #[display(fmt = "Internal process error")]
+    PlayerProcessError
     //
     // #[display(fmt = "timeout")]
     // Timeout,
@@ -31,6 +34,7 @@ impl ResponseError for ApiError {
         match self {
             ApiError::DbError(_) => StatusCode::BAD_REQUEST,
             ApiError::BadClientData => StatusCode::BAD_REQUEST,
+            ApiError::PlayerProcessError => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -39,7 +43,7 @@ impl ResponseError for ApiError {
             ApiError::DbError(err) => {
                 format!("{:?}", err)
             },
-            ApiError::BadClientData => self.to_string()
+            _ => self.to_string()
         };
 
         HttpResponse::build(self.status_code())

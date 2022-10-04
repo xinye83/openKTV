@@ -1,7 +1,8 @@
 use crate::api::ApiError;
 
 pub mod consts;
-
+pub mod tube_utils;
+pub mod iina_utils;
 
 pub trait OptionUtil {
     fn guard(&self) -> Result<String, ApiError>;
