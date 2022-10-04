@@ -82,13 +82,13 @@ VALUES (?, ?)
     pub async fn insert_song(&self, request: SongRequest) -> Result<u64, sqlx::Error> {
         // find artist first
         let artist_request = ArtistRequest {
-            name: request.name.clone(),
+            name: request.artist.clone(),
             region: request.region.clone(),
         };
         let artists = self.query_artists(artist_request, &QueryParams { page_num: None, page_size: None }).await?;
 
         let artist_id = if artists.is_empty() {
-            self.insert_artist(request.name.as_ref().unwrap(), &request.region).await?
+            self.insert_artist(request.artist.as_ref().unwrap(), &request.region).await?
         } else {
             artists.get(0).unwrap().id
         };

@@ -83,7 +83,6 @@ pub async fn query_artists(ddb: Data<DBRepository>, query: web::Json<ArtistReque
 // song
 #[put("/song")]
 pub async fn put_song(ddb: Data<DBRepository>, payload: Json<SongRequest>) -> Result<Json<u64>, ApiError> {
-    //let song = Song::new_youtube(payload.name.guard()?, payload.artist.guard()?, payload.url.guard()?);
     let rtn = ddb.insert_song(payload.0).await;
     return match rtn {
         Ok(id) => Ok(Json(id)),
