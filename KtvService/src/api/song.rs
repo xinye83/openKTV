@@ -18,6 +18,12 @@ pub struct SongRequest {
     pub region: Option<String>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ListRequest {
+    pub path: String
+}
+
+
 // song
 #[get("/song/{song_id}")]
 pub async fn get_song_by_id(ddb: Data<DBRepository>, path: Path<SongIdRequest>) -> Result<Json<Song>, ApiError> {
@@ -43,3 +49,29 @@ pub async fn query_songs(ddb: Data<DBRepository>, query: Json<SongRequest>, para
     return match_results(rtn, params.0)
 }
 
+/// Insert a list of songs in CSV format into the database, return an error or a list of song IDs if success.
+#[put("/list")]
+pub async fn put_list(ddb: Data<DBRepository>, path: Json<ListRequest>) -> Result<Json<Vec<u64>>, ApiError> {
+    let mut reader = match csv::Reader::from_path(path.into_inner().path) {
+        Ok(r) => r,
+        Err(err) => return Err(ApiError::CsvReadError(err)),
+    };
+
+    let mut ids: Vec<u64> = Vec::new();
+
+    for item in reader.deserialize() {
+        let item: SongRequest = match item {
+            Ok(item) => item,
+            Err(err) => return Err(ApiError::CsvReadError(err)),
+        };
+
+        let rtn = ddb.insert_song(item).await;
+
+        match rtn {
+            Ok(id) => ids.push(id),
+            Err(_) => continue,
+        }
+    }
+
+    return Ok(Json(ids))
+}

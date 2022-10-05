@@ -7,8 +7,7 @@ use sqlx::mysql::MySqlPoolOptions;
 use api::artist::{put_artist, query_artists};
 use repo::DBRepository;
 use crate::api::queue::{delete_song_from_q, get_q, post_song_to_q, put_deprioritize_song, put_next_song, put_play_song, put_prioritize_song};
-use crate::api::song::{SongRequest, get_song_by_id, put_song, query_songs};
-type Record = (String, String, String);
+use crate::api::song::{get_song_by_id, put_song, query_songs, put_list};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -27,21 +26,6 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("DB failed to init.");
 
-    let mut reader = csv::Reader::from_path("../youtube/songs.csv")?;
-
-    for item in reader.deserialize() {
-        let item: Record = item?;
-
-        ddb.insert_song(SongRequest {
-                name: Some(String::from(item.1)),
-                url: Some(String::from(item.2)),
-                artist: Some(String::from(item.0)),
-                region: Some(String::from("China")),
-        })
-        .await
-        .expect("Failed to add song to DB.");
-    }
-
     HttpServer::new(move || {
         let ddb_data = Data::new(ddb.clone());
         let logger = Logger::default();
@@ -53,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_song_by_id)
             .service(put_song)
             .service(query_songs)
+            .service(put_list)
             .service(get_q)
             .service(post_song_to_q)
             .service(put_play_song)
