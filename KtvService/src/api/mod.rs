@@ -19,6 +19,9 @@ pub enum ApiError {
     #[display(fmt = "Internal DB error")]
     DbError(sqlx::Error),
 
+    #[display(fmt = "Bad CSV file or format")]
+    CsvReadError(csv::Error),
+
     #[display(fmt = "Bad request")]
     BadClientData,
 
@@ -33,6 +36,7 @@ impl ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
             ApiError::DbError(_) => StatusCode::BAD_REQUEST,
+            ApiError::CsvReadError(_) => StatusCode::BAD_REQUEST,
             ApiError::BadClientData => StatusCode::BAD_REQUEST,
             ApiError::PlayerProcessError => StatusCode::INTERNAL_SERVER_ERROR,
         }
