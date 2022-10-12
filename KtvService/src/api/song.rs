@@ -2,7 +2,7 @@ use actix_web::{get, post, put};
 use actix_web::web::{Data, Json, Path, Query};
 use crate::model::song::Song;
 use serde::{Deserialize, Serialize};
-use crate::api::{ApiError, ApiResponse, match_results, QueryParams};
+use crate::api::{ApiError, ApiResponse, match_results, match_results_total, QueryParams};
 use crate::DBRepository;
 
 #[derive(Serialize, Deserialize)]
@@ -46,7 +46,7 @@ pub async fn put_song(ddb: Data<DBRepository>, payload: Json<SongRequest>) -> Re
 #[post("/songs")]
 pub async fn query_songs(ddb: Data<DBRepository>, query: Json<SongRequest>, params: Query<QueryParams>) -> Result<Json<ApiResponse<Song>>, ApiError> {
     let rtn = ddb.query_songs(query.0, &params.0).await;
-    return match_results(rtn, params.0)
+    return match_results_total(rtn, params.0)
 }
 
 /// Insert a list of songs in CSV format into the database, return an error or a list of song IDs if success.
