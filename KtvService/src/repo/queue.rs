@@ -1,4 +1,4 @@
-use std::ops::Index;
+
 use log::info;
 use crate::api::QueryParams;
 use crate::model::queue::Queue;
@@ -13,7 +13,8 @@ SELECT q.*, a.name AS artist_name, s.id AS song_id, s.name AS song_name, s.url A
 FROM queue q
 LEFT JOIN song s ON s.id = q.song_id
 LEFT JOIN artist a ON s.artist_id = a.id
-ORDER BY -q.prioritized_at DESC, q.created_at ASC {}", create_pagination_query(&params));
+ORDER BY ISNULL(q.prioritized_at), q.prioritized_at DESC, q.updated_at ASC {}", create_pagination_query(&params));
+//ORDER BY -q.prioritized_at DESC, q.prioritized_at ASC, q.created_at ASC {}", create_pagination_query(&params));
         let result = sqlx::query_as::<_, Queue>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;
@@ -49,8 +50,8 @@ ORDER BY -q.prioritized_at DESC, q.created_at ASC {}", create_pagination_query(&
         self.get_song_by_id(song_id.clone()).await?;
 
         let result = sqlx::query("\
-INSERT INTO queue (song_id, created_at, prioritized_at)
-VALUES (?, NOW(), NULL)
+INSERT INTO queue (song_id, created_at, updated_at, prioritized_at)
+VALUES (?, NOW(), NOW(), NULL)
 ")
             .bind(song_id)
             .execute(&self.pool)
@@ -64,7 +65,7 @@ VALUES (?, NOW(), NULL)
         let prioritize_value = if is_deprioritize { "NULL" } else { "NOW()" };
         let query_str = format!("\
 UPDATE queue
-SET prioritized_at = {}
+SET prioritized_at = {}, updated_at = NOW()
 WHERE song_id = {}", prioritize_value, song_id);
         let result = sqlx::query(query_str.as_str())
             .execute(&self.pool)

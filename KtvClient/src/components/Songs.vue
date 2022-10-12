@@ -21,7 +21,13 @@
             :fields="fields" small>
             <template v-slot:cell(actions)="{ item }">
               <span>
-                <b-btn @click="onOrderSong(item)">order</b-btn>
+                <template v-if="item.is_queued">
+                  <b-icon icon="plus-square-fill" variant="secondary" font-scale="1.8"></b-icon>
+                </template>
+                <template v-else>
+                  <b-icon icon="plus-square-fill" @click="onOrderSong(item)" style="color: #7952b3;" font-scale="1.8"></b-icon>
+                </template>
+                
               </span>
             </template>
           </b-table>
@@ -92,6 +98,8 @@ export default {
     async onOrderSong(item) {
       console.log("ordering song:", item)
       await queueSong(item.id)
+      // todo check if successful
+      this.items = this.items.map(it => it.id == item.id ? { ...it, is_queued: true} : it)
     },
 
     onDelete(id) {

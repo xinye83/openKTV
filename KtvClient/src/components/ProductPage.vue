@@ -22,7 +22,6 @@
 </template>
 
 <script>
-import db from '@/db'
 export default {
   name: 'ProductPage',
   data () {
@@ -46,21 +45,21 @@ export default {
 	  //   })
 	  //   this.products = products
 	  // })
-	var docRef = db.collection('products').doc(this.$route.params.id);
-	docRef.get().then((doc)=> {
-	    if (doc.exists) {
-	        console.log("Document data:", doc.data().product_id);
-	        this.productId = doc.data().product_id
-	        this.productName = doc.data().product_name
-	        this.productPrice = doc.data().product_price
-	        this.loaded = true
-	    } else {
-	        // doc.data() will be undefined in this case
-	        console.log("No such document!");
-	    }
-	}).catch(function(error) {
-	    console.log("Error getting document:", error);
-	});
+	// var docRef = db.collection('products').doc(this.$route.params.id);
+	// docRef.get().then((doc)=> {
+	//     if (doc.exists) {
+	//         console.log("Document data:", doc.data().product_id);
+	//         this.productId = doc.data().product_id
+	//         this.productName = doc.data().product_name
+	//         this.productPrice = doc.data().product_price
+	//         this.loaded = true
+	//     } else {
+	//         // doc.data() will be undefined in this case
+	//         console.log("No such document!");
+	//     }
+	// }).catch(function(error) {
+	//     console.log("Error getting document:", error);
+	// });
 
   }
 }
