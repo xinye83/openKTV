@@ -40,7 +40,7 @@ VALUES (?, ?, ?)
 SELECT COUNT(*)
 FROM song s
 LEFT JOIN artist a ON s.artist_id = a.id
-WHERE s.name LIKE '%{}%'", body.name.clone().unwrap());
+WHERE s.name LIKE '%{}%' AND a.name LIKE '%{}%' ", body.name.as_ref().unwrap(), body.artist.as_ref().unwrap());
         let count: i64 = sqlx::query(count_query_str.as_str())
             .fetch_one(&self.pool)
             .await?
@@ -51,7 +51,7 @@ WHERE s.name LIKE '%{}%'", body.name.clone().unwrap());
 SELECT {}
 FROM song s
 LEFT JOIN artist a ON s.artist_id = a.id
-WHERE s.name LIKE '%{}%' {}", SONG_SELECT_FIELDS, body.name.unwrap(), create_pagination_query(query));
+WHERE s.name LIKE '%{}%' AND a.name LIKE '%{}%' {}", SONG_SELECT_FIELDS, body.name.as_ref().unwrap(), body.artist.as_ref().unwrap(), create_pagination_query(query));
         let result = sqlx::query_as::<_, Song>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;

@@ -9,10 +9,14 @@
 
 <script>
 import Navbar from '@/components/Navbar'
+import Playlist from '@/components/Playlist'
+import Songs from '@/components/Songs'
 export default {
   name: 'App',
   components:{
-    Navbar
+    Navbar,
+    Playlist,
+    Songs
   }
 }
 </script>

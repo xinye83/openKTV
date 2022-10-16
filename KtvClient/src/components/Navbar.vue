@@ -7,17 +7,22 @@
 		    <span class="navbar-toggler-icon"></span>
 		  </button>
 		  <div class="collapse navbar-collapse" id="navbarNav">
+
 		    <ul class="navbar-nav">
 		      <li class="nav-item active">
-		        <a class="nav-link" href="#">Playlist<span class="sr-only">(current)</span></a>
+		        <!-- <a class="nav-link" href="#">Playlist<span class="sr-only">(current)</span></a> -->
+				<b-nav-item to="/" exact exact-active-class="active">Playlist</b-nav-item>
 		      </li>
 		      <li class="nav-item">
-		        <a class="nav-link" href="#">Songs</a>
+		        <!-- <a class="nav-link" href="#">Songs</a> -->
+				<b-nav-item to="/songs" exact exact-active-class="active">Songs</b-nav-item>
 		      </li>
 		      <li class="nav-item">
-		        <a class="nav-link" href="#">Artists</a>
+		        <!-- <a class="nav-link" href="#">Artists</a> -->
+				<b-nav-item to="/artists" exact exact-active-class="active">Artists</b-nav-item>
 		      </li>
 		    </ul>
+			
 		  </div>
 		</div>
 	</nav>
