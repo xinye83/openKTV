@@ -2,6 +2,8 @@ mod api;
 mod model;
 mod repo;
 mod utils;
+
+use actix_cors::Cors;
 use actix_web::{HttpServer, App, web::Data, middleware::Logger};
 use sqlx::mysql::MySqlPoolOptions;
 use api::artist::{put_artist, query_artists};
@@ -29,8 +31,13 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let ddb_data = Data::new(ddb.clone());
         let logger = Logger::default();
+        let cors = Cors::default()
+            .allow_any_header()
+            .allow_any_method()
+            .allow_any_origin();
         App::new()
             .wrap(logger)
+            .wrap(cors)
             .app_data(ddb_data)
             .service(put_artist)
             .service(query_artists)
@@ -47,7 +54,8 @@ async fn main() -> std::io::Result<()> {
             .service(delete_song_from_q)
 
     })
-        .bind(("127.0.0.1", 8080))?
+        //.bind(("127.0.0.1", 8081))?
+        .bind(("192.168.68.54", 8081))?
         .run()
         .await
 }

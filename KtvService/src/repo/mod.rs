@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS artist
     `name`      VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     region      VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uniq_artist UNIQUE (`name`)
 );").execute(&pool).await?;
 
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS song
     artist_id   BIGINT UNSIGNED NOT NULL,
     url         TEXT NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uniq_song UNIQUE (`name`, artist_id),
     FOREIGN KEY (artist_id)
       REFERENCES artist(id)
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS queue
     id          BIGINT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
     song_id     BIGINT UNSIGNED NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     prioritized_at  TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT uniq_song UNIQUE (song_id),
     FOREIGN KEY (song_id)

@@ -29,7 +29,7 @@ VALUES (?, ?)
             .collect::<Vec<_>>()
             .join(" AND ");
 
-        let query_str = format!("SELECT a.id, a.name AS artist_name, a.region, a.created_at FROM artist a WHERE {} {}", where_cause_str, create_pagination_query(query));
+        let query_str = format!("SELECT a.name AS artist_name, a.* FROM artist a WHERE {} {}", where_cause_str, create_pagination_query(query));
         let result = sqlx::query_as::<_, Artist>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;

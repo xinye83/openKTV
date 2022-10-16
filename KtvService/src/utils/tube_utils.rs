@@ -18,7 +18,7 @@ mod tests {
 
     #[actix_rt::test]
     async fn factorial_of_0() -> Result<(), Error> {
-        parse_youtube_url("https://www.youtube.com/watch?v=VuVOyUbFSI0");
+        parse_youtube_url("https://www.youtube.com/watch?v=DrtlnWn8y_U");
 
         Ok(())
     }

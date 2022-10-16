@@ -13,4 +13,5 @@ pub struct Artist {
     pub region: String,
     //#[serde(with = "ts_seconds")]
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }

@@ -14,8 +14,10 @@ pub struct Song {
     pub artist: Artist,
     //pub state: State,
     pub url: String,
+    pub is_queued: bool,
     //pub played_count: usize,
     //#[serde(with = "ts_seconds")]
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 
 }

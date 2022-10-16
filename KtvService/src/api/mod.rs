@@ -68,6 +68,7 @@ pub struct QueryParams {
 pub struct ApiResponse<T> {
     pub page_num: Option<usize>,
     pub page_size: Option<usize>,
+    pub total_count: Option<i64>,
     pub items: Box<Vec<T>>,
 }
 
@@ -76,7 +77,20 @@ pub fn match_results<T>(rtn: Result<Vec<T>, Error>, params: QueryParams) -> Resu
         Ok(it) => Ok(Json(ApiResponse {
             page_num: params.page_num,
             page_size: params.page_size,
+            total_count: None,
             items: Box::new(it),
+        })),
+        Err(err) => Err(ApiError::DbError(err))
+    }
+}
+
+pub fn match_results_total<T>(rtn: Result<(Vec<T>, i64), Error>, params: QueryParams) -> Result<Json<ApiResponse<T>>, ApiError> {
+    return match rtn {
+        Ok(it) => Ok(Json(ApiResponse {
+            page_num: params.page_num,
+            page_size: params.page_size,
+            total_count: Some(it.1),
+            items: Box::new(it.0),
         })),
         Err(err) => Err(ApiError::DbError(err))
     }

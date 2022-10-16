@@ -1,3 +1,4 @@
+use sqlx::Row;
 use crate::api::artist::ArtistRequest;
 use crate::api::QueryParams;
 use crate::api::song::SongRequest;
@@ -5,7 +6,7 @@ use crate::model::song::Song;
 use crate::repo::{create_pagination_query, DBRepository};
 use crate::utils::iina_utils::play_url;
 
-static SONG_SELECT_FIELDS: &str = "a.name AS artist_name, a.*, s.*";
+static SONG_SELECT_FIELDS: &str = "a.name AS artist_name, a.*, s.*, IF(EXISTS(SELECT 1 FROM queue WHERE queue.song_id = s.id), true, false) as is_queued";
 
 impl DBRepository {
     pub async fn insert_song(&self, request: SongRequest) -> Result<u64, sqlx::Error> {
@@ -34,17 +35,28 @@ VALUES (?, ?, ?)
         Ok(result.last_insert_id())
     }
 
-    pub async fn query_songs(&self, body: SongRequest, query: &QueryParams) -> Result<Vec<Song>, sqlx::Error> {
+    pub async fn query_songs(&self, body: SongRequest, query: &QueryParams) -> Result<(Vec<Song>, i64), sqlx::Error> {
+        let count_query_str = format!("\
+SELECT COUNT(*)
+FROM song s
+LEFT JOIN artist a ON s.artist_id = a.id
+WHERE s.name LIKE '%{}%' AND a.name LIKE '%{}%' ", body.name.as_ref().unwrap(), body.artist.as_ref().unwrap());
+        let count: i64 = sqlx::query(count_query_str.as_str())
+            .fetch_one(&self.pool)
+            .await?
+            .try_get(0)?;
+
+
         let query_str = format!("\
 SELECT {}
 FROM song s
 LEFT JOIN artist a ON s.artist_id = a.id
-WHERE s.name LIKE '%{}%' {}", SONG_SELECT_FIELDS, body.name.unwrap(), create_pagination_query(query));
+WHERE s.name LIKE '%{}%' AND a.name LIKE '%{}%' {}", SONG_SELECT_FIELDS, body.name.as_ref().unwrap(), body.artist.as_ref().unwrap(), create_pagination_query(query));
         let result = sqlx::query_as::<_, Song>(query_str.as_str())
             .fetch_all(&self.pool)
             .await?;
 
-        Ok(result)
+        Ok((result, count))
     }
 
     pub async fn get_song_by_id(&self, id: String) -> Result<Song, sqlx::Error> {
