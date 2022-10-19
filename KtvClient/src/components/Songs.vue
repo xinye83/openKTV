@@ -6,10 +6,11 @@
 
     <b-input-group>
       <b-form-input v-model="searchStr" placeholder="搜索歌名..."></b-form-input>
+      <b-form-input v-model="searchArtistStr" placeholder="搜索歌星..."></b-form-input>
       <b-input-group-append>
         <b-button variant="primary" v-on:click="getItems">Search</b-button>
       </b-input-group-append>
-      </b-input-group>
+    </b-input-group>
 
     </div>
     <div class="card mt-5">
@@ -55,7 +56,7 @@ export default {
   data() {
     return {
       searchStr: '',
-
+      searchArtistStr: '',
       fields: ['name', 'artist', "actions"],
       items: [],
       perPage: 5,
@@ -82,7 +83,7 @@ export default {
       this.isBusy = true
       let songs = await querySongs({
         name: this.searchStr,
-        artist: ""
+        artist: this.searchArtistStr,
       }, 0, 1000)
       this.isBusy = false
       this.items = songs.items.map(x => {

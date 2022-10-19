@@ -3,11 +3,13 @@ mod model;
 mod repo;
 mod utils;
 
+use std::sync::Mutex;
 use actix_cors::Cors;
 use actix_web::{HttpServer, App, web::Data, middleware::Logger};
 use sqlx::mysql::MySqlPoolOptions;
 use api::artist::{put_artist, query_artists};
 use repo::DBRepository;
+use utils::vlc_utils::ChildContainer;
 use crate::api::queue::{delete_song_from_q, get_q, post_song_to_q, put_deprioritize_song, put_next_song, put_play_song, put_prioritize_song};
 use crate::api::song::{get_song_by_id, put_song, query_songs, put_list};
 
@@ -28,8 +30,11 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("DB failed to init.");
 
+    let cc_data = Data::new(Mutex::new(ChildContainer { song_id: 0, child: None }));
+
     HttpServer::new(move || {
         let ddb_data = Data::new(ddb.clone());
+
         let logger = Logger::default();
         let cors = Cors::default()
             .allow_any_header()
@@ -39,6 +44,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .wrap(cors)
             .app_data(ddb_data)
+            .app_data(Data::clone(&cc_data))
             .service(put_artist)
             .service(query_artists)
             .service(get_song_by_id)

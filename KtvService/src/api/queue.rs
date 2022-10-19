@@ -1,11 +1,12 @@
 use std::fmt::format;
+use std::sync::Mutex;
 use actix_web::{get, post, put, delete};
 use actix_web::web::{Data, Json, Path, Query};
 use crate::api::{ApiError, QueryParams};
 use crate::api::song::SongIdRequest;
-use crate::DBRepository;
+use crate::{ChildContainer, DBRepository};
 use crate::model::queue::Queue;
-use crate::utils::iina_utils::play_url;
+use crate::utils::vlc_utils::play_url;
 
 
 #[get("/queue")]
@@ -18,10 +19,12 @@ pub async fn get_q(ddb: Data<DBRepository>, params: Query<QueryParams>) -> Resul
 }
 
 #[put("/queue/play_song")]
-pub async fn put_play_song(ddb: Data<DBRepository>) -> Result<String, ApiError> {
+pub async fn put_play_song(ddb: Data<DBRepository>, cc_data: Data<Mutex<ChildContainer>>) -> Result<String, ApiError> {
+
     let rtn = ddb.get_next_song().await.map_err(|e| ApiError::DbError(e))?;
     if let Some(queue) = rtn {
-        play_url(&queue.song_url).await.map_err(|_| ApiError::PlayerProcessError)?;
+        let prev_song_id = play_url(ddb.get_ref(), &queue.song_url, queue.song_id, cc_data.into_inner()).await.map_err(|_| ApiError::PlayerProcessError)?;
+
         Ok(format!("Playing {}", queue.song_name))
     } else {
         Ok("No song in queue found.".to_string())

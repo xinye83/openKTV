@@ -4,7 +4,6 @@ use crate::api::QueryParams;
 use crate::api::song::SongRequest;
 use crate::model::song::Song;
 use crate::repo::{create_pagination_query, DBRepository};
-use crate::utils::iina_utils::play_url;
 
 static SONG_SELECT_FIELDS: &str = "a.name AS artist_name, a.*, s.*, IF(EXISTS(SELECT 1 FROM queue WHERE queue.song_id = s.id), true, false) as is_queued";
 
