@@ -9,6 +9,7 @@ edition = "2021"
 actix-web = "4"
 actix-rt = "2.7.0"
 actix-cors = "0.6.3"
+actix-files = "0.6.2"
 sqlx = { version = "0.6", features = [ "runtime-actix-native-tls" , "mysql", "chrono" ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.85"
@@ -22,3 +23,4 @@ derive_more = "0.99.17"
 chrono = { version = "^0.4.1", features = ["serde", "rustc-serialize"] }
 rustube = "0.5.0"
 csv = "1.1"
+tempfile = "3.3.0"

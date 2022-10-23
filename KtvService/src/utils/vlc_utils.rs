@@ -35,16 +35,7 @@ pub struct ChildContainer {
 
 static VLC_PATH: &str = "/opt/homebrew/bin/vlc";
 
-pub async fn play_url(ddb: &DBRepository, url: &str, song_id: u64, cc_data: Arc<Mutex<ChildContainer>>) -> Result<(), PlayerProcessError> {
-    let mut cc = cc_data.lock().unwrap();
-
-    if cc.child.as_ref().is_some() { // previous vlc is running
-        info!("killing child process for song ID ={}", cc.song_id);
-        let child = cc.child.as_mut().unwrap();
-        child.kill().expect("Should kill the child process");
-        // remove from queue
-        ddb.delete_song_from_q(cc.song_id.to_string()).await.unwrap();
-    }
+pub async fn play_url(url: &str) -> Result<Child, PlayerProcessError> {
 
     let url = parse_youtube_url(url).await?;
     println!("[VLC] Playing url={}", &url);
@@ -57,10 +48,7 @@ pub async fn play_url(ddb: &DBRepository, url: &str, song_id: u64, cc_data: Arc<
         // .stderr(Stdio::null())
         .spawn()
         .expect("VLC command failed to start");
-
-    cc.child = Some(child);
-    cc.song_id = song_id;
-    Ok(())
+    Ok(child)
 }
 
 

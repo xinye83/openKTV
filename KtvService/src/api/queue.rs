@@ -1,7 +1,8 @@
-use std::fmt::format;
 use std::sync::Mutex;
 use actix_web::{get, post, put, delete};
 use actix_web::web::{Data, Json, Path, Query};
+use log::info;
+use sqlx::encode::IsNull::No;
 use crate::api::{ApiError, QueryParams};
 use crate::api::song::SongIdRequest;
 use crate::{ChildContainer, DBRepository};
@@ -18,28 +19,50 @@ pub async fn get_q(ddb: Data<DBRepository>, params: Query<QueryParams>) -> Resul
     };
 }
 
-#[put("/queue/play_song")]
-pub async fn put_play_song(ddb: Data<DBRepository>, cc_data: Data<Mutex<ChildContainer>>) -> Result<String, ApiError> {
+#[put("/queue/next_song")]
+pub async fn put_next_song(ddb: Data<DBRepository>, cc_data: Data<Mutex<ChildContainer>>) -> Result<Json<Vec<Queue>>, ApiError> {
+
+    // next song requested
+    let mut cc = cc_data.lock().unwrap();
+
+    if cc.child.as_ref().is_some() {
+        // previous vlc is running
+        info!("killing child process for song ID ={}", cc.song_id);
+        let child = cc.child.as_mut().unwrap();
+        child.kill().expect("Should kill the child process");
+        // remove from queue
+        ddb.delete_song_from_q(cc.song_id.to_string()).await.unwrap();
+    }
 
     let rtn = ddb.get_next_song().await.map_err(|e| ApiError::DbError(e))?;
     if let Some(queue) = rtn {
-        let prev_song_id = play_url(ddb.get_ref(), &queue.song_url, queue.song_id, cc_data.into_inner()).await.map_err(|_| ApiError::PlayerProcessError)?;
+        let mut child = play_url(&queue.song_url).await.map_err(|_| ApiError::PlayerProcessError)?;
+        //child.wait().expect("VLC command failed to run");
 
-        Ok(format!("Playing {}", queue.song_name))
+        info!("Playing {}", queue.song_name);
+        cc.song_id = queue.song_id;
+        cc.child = Some(child);
+
+        let rtn = ddb.get_queue(QueryParams { page_num: Some(0), page_size: Some(1000) }).await;
+        match rtn {
+            Ok(id) => Ok(Json(id)),
+            Err(err) => Err(ApiError::DbError(err))
+        }
     } else {
-        Ok("No song in queue found.".to_string())
+        cc.song_id = 0;
+        cc.child = None;
+        Ok(Json(Vec::new()))
     }
-
 }
 
-#[put("/queue/next_song")]
-pub async fn put_next_song(ddb: Data<DBRepository>, params: Query<QueryParams>) -> Result<Json<Vec<Queue>>, ApiError> {
-    let rtn = ddb.pop_song_from_queue(params.0).await;
-    return match rtn {
-        Ok(id) => Ok(Json(id)),
-        Err(err) => Err(ApiError::DbError(err))
-    };
-}
+// #[put("/queue/next_song")]
+// pub async fn put_next_song(ddb: Data<DBRepository>, params: Query<QueryParams>) -> Result<Json<Vec<Queue>>, ApiError> {
+//     let rtn = ddb.pop_song_from_queue(params.0).await;
+//     return match rtn {
+//         Ok(id) => Ok(Json(id)),
+//         Err(err) => Err(ApiError::DbError(err))
+//     };
+// }
 
 
 #[post("/queue/{song_id}")]

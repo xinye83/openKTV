@@ -30,11 +30,15 @@
 </template>
 
 <script>
+import { nextSong } from '../db'
 export default {
   name: 'OpenKTV',
   data () {
     return {
     }
+  },
+  methods: {
+	
   }
 }
 </script>

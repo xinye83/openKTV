@@ -25,6 +25,10 @@ export async function deleteSongFromQ(songId) {
 	return await deleteData(`${baseUrl}/queue/${songId}`)
 }
 
+export async function nextSong() {
+	return await putData(`${baseUrl}/queue/next_song`)
+}
+
 async function postData(url = '', data = {}) {
 	try {
 		let response = await fetch(url, {

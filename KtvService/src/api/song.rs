@@ -1,9 +1,12 @@
-use actix_web::{get, post, put};
+use std::io::{LineWriter, Write};
+use actix_web::{get, HttpRequest, HttpResponse, post, put};
 use actix_web::web::{Data, Json, Path, Query};
 use crate::model::song::Song;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use crate::api::{ApiError, ApiResponse, match_results, match_results_total, QueryParams};
 use crate::DBRepository;
+use tempfile::{NamedTempFile, tempfile};
 
 #[derive(Serialize, Deserialize)]
 pub struct SongIdRequest {
@@ -12,9 +15,9 @@ pub struct SongIdRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct SongRequest {
-    pub name: Option<String>,
+    pub name: String,
+    pub artist: String,
     pub url: Option<String>,
-    pub artist: Option<String>,
     pub region: Option<String>,
 }
 
@@ -49,9 +52,10 @@ pub async fn query_songs(ddb: Data<DBRepository>, query: Json<SongRequest>, para
     return match_results_total(rtn, params.0)
 }
 
-/// Insert a list of songs in CSV format into the database, return an error or a list of song IDs if success.
-#[put("/list")]
-pub async fn put_list(ddb: Data<DBRepository>, path: Json<ListRequest>) -> Result<Json<Vec<u64>>, ApiError> {
+
+/// Import a list of songs in CSV format into the database, return an error or a list of song IDs if success.
+#[post("/import")]
+pub async fn post_songs_import(ddb: Data<DBRepository>, path: Json<ListRequest>) -> Result<Json<Vec<u64>>, ApiError> {
     let mut reader = match csv::Reader::from_path(path.into_inner().path) {
         Ok(r) => r,
         Err(err) => return Err(ApiError::CsvReadError(err)),
@@ -74,4 +78,37 @@ pub async fn put_list(ddb: Data<DBRepository>, path: Json<ListRequest>) -> Resul
     }
 
     return Ok(Json(ids))
+}
+
+#[get("/export")]
+pub async fn get_songs_export(req: HttpRequest, ddb: Data<DBRepository>) -> Result<HttpResponse, ApiError> {
+    // Create a file inside of `std::env::temp_dir()`.
+    let file = NamedTempFile::new().unwrap();
+
+    let mut buffer = LineWriter::new(&file);
+
+    let song_request = SongRequest {
+        name: "".to_string(),
+        artist: "".to_string(),
+        url: None,
+        region: None,
+    };
+
+    let query = QueryParams {
+        page_num: Some(0),
+        page_size: Some(10000),
+    };
+
+    let songs_results = ddb.query_songs(song_request, &query).await.map_err(|e| ApiError::DbError(e))?;
+
+    for song in songs_results.0 {
+
+        let line = json!(song).to_string();
+        let str = line.as_bytes();
+        buffer.write(str).unwrap();
+    }
+
+    let named_file = actix_files::NamedFile::open_async(&file.path()).await.unwrap();
+
+    Ok(named_file.into_response(&req))
 }
