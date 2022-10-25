@@ -22,3 +22,10 @@ pub struct Song {
 
 }
 
+impl Song {
+    pub fn to_csv_line(&self) -> String {
+        let v = vec![self.name.clone(), self.artist.clone().name, self.artist.clone().region, self.url.clone()];
+        let line = v.join(",");
+        format!("{}\n", line)
+    }
+}

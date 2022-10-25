@@ -11,6 +11,7 @@ use actix_web::{
 };
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use sqlx::{Error};
 
 
@@ -43,16 +44,20 @@ impl ResponseError for ApiError {
     }
 
     fn error_response(&self) -> HttpResponse {
-        let body = match self {
+        let err = match self {
             ApiError::DbError(err) => {
                 format!("{:?}", err)
             },
             _ => self.to_string()
         };
 
+        let body = json!({
+            "error": err
+        });
+
         HttpResponse::build(self.status_code())
             .insert_header(ContentType::json())
-            .body(body)
+            .body(body.to_string())
     }
 }
 

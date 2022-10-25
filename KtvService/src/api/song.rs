@@ -1,6 +1,7 @@
 use std::io::{LineWriter, Write};
 use actix_web::{get, HttpRequest, HttpResponse, post, put};
-use actix_web::web::{Data, Json, Path, Query};
+use actix_web::http::StatusCode;
+use actix_web::web::{Data, head, Json, Path, Query};
 use crate::model::song::Song;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -100,10 +101,12 @@ pub async fn get_songs_export(req: HttpRequest, ddb: Data<DBRepository>) -> Resu
     };
 
     let songs_results = ddb.query_songs(song_request, &query).await.map_err(|e| ApiError::DbError(e))?;
+    let header = vec!["name", "artist", "region", "url\n"].join(",");
 
+    buffer.write(header.as_bytes()).unwrap();
     for song in songs_results.0 {
 
-        let line = json!(song).to_string();
+        let line = song.to_csv_line();
         let str = line.as_bytes();
         buffer.write(str).unwrap();
     }

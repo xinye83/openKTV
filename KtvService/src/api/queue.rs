@@ -39,6 +39,7 @@ pub async fn put_next_song(ddb: Data<DBRepository>, cc_data: Data<Mutex<ChildCon
         let mut child = play_url(&queue.song_url).await.map_err(|_| ApiError::PlayerProcessError)?;
         //child.wait().expect("VLC command failed to run");
 
+
         info!("Playing {}", queue.song_name);
         cc.song_id = queue.song_id;
         cc.child = Some(child);
