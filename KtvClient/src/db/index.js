@@ -72,7 +72,6 @@ async function putData(url = '') {
 		return response.json()
 	} catch (error) {
 		console.log(error);
-		return {}
 	}
 }
 

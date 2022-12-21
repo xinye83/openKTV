@@ -1,11 +1,6 @@
-use std::process::{Child, Command, Stdio};
-use std::sync::{Arc, Mutex};
-use actix_web::web::Buf;
-use log::{info, logger};
-use rustube::url::Url;
+use std::process::{Child, Command};
 use crate::utils::tube_utils::parse_youtube_url;
 use thiserror::Error;
-use crate::DBRepository;
 
 #[derive(Error, Debug)]
 pub enum PlayerProcessError {
@@ -56,8 +51,8 @@ pub async fn play_url(url: &str) -> Result<Child, PlayerProcessError> {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn test() {
-    //     play_url("/Users/eppe/Movies/projects/tennis_good_shots_30aug2022/render/game1.m4v");
-    // }
+    #[test]
+    fn test() {
+        play_url("/Users/eppe/Movies/projects/tennis_good_shots_30aug2022/render/game1.m4v");
+    }
 }

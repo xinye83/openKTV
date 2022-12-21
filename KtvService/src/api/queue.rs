@@ -2,7 +2,6 @@ use std::sync::Mutex;
 use actix_web::{get, post, put, delete};
 use actix_web::web::{Data, Json, Path, Query};
 use log::info;
-use sqlx::encode::IsNull::No;
 use crate::api::{ApiError, QueryParams};
 use crate::api::song::SongIdRequest;
 use crate::{ChildContainer, DBRepository};
@@ -29,16 +28,15 @@ pub async fn put_next_song(ddb: Data<DBRepository>, cc_data: Data<Mutex<ChildCon
         // previous vlc is running
         info!("killing child process for song ID ={}", cc.song_id);
         let child = cc.child.as_mut().unwrap();
-        child.kill().expect("Should kill the child process");
+        child.kill().expect("Unable to kill the child process");
         // remove from queue
         ddb.delete_song_from_q(cc.song_id.to_string()).await.unwrap();
     }
 
     let rtn = ddb.get_next_song().await.map_err(|e| ApiError::DbError(e))?;
     if let Some(queue) = rtn {
-        let mut child = play_url(&queue.song_url).await.map_err(|_| ApiError::PlayerProcessError)?;
+        let child = play_url(&queue.song_url).await.map_err(|_| ApiError::PlayerProcessError)?;
         //child.wait().expect("VLC command failed to run");
-
 
         info!("Playing {}", queue.song_name);
         cc.song_id = queue.song_id;

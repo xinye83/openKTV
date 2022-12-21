@@ -1,7 +1,6 @@
 <template>
   <div class="products">
-    <h3>Songs</h3>
-
+  
     <div class="search-bar mt-3">
 
     <b-input-group>
